@@ -9,7 +9,40 @@
     <script>
             let fullName = "Dong Thi Ha"
             let studentId = "27A4042930"
-            let faculty = "CNTT"
+            let maKhoa = studentId.substring(3, 6); // Cắt lấy 3 ký tự từ vị trí số 3 ("404")
+        let faculty = "";
+        
+        switch (maKhoa) {
+            case "404":
+                faculty = "CNTT & KTS";
+                break;
+            case "408":
+                faculty = "KHDL";
+                break;
+            case "401":
+                faculty = "NH - TC"; // Gộp chung do trên bảng ghi 2 lần
+                break;
+            case "403":
+                faculty = "QTKD";
+                break;
+            case "405":
+                faculty = "KDQT";
+                break;
+            case "407":
+                faculty = "KT";
+                break;
+            case "406":
+                faculty = "Luật";
+                break;
+            case "75A":
+                faculty = "NN";
+                break;
+            case "402":
+                faculty = "KT-KT";
+                break;
+            default:
+                faculty = "Chưa xác định";
+        }
             let arr = fullName.toLowerCase().split(" ");
             let ten = arr[arr.length - 1]; 
             let ho = arr[0]; 
