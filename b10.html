@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Danh sách sinh viên</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background-color: #007bff;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+
+<h2>Danh sách sinh viên</h2>
+
+<input type="file" id="fileInput" accept=".xlsx, .xls, .csv" />
+
+<table>
+    <thead>
+        <tr>
+            <th>Họ tên</th>
+            <th>MSSV</th>
+            <th>Email</th>
+            <th>Khóa</th>
+            <th>Khoa</th>
+        </tr>
+    </thead>
+    <tbody id="studentTable"></tbody>
+</table>
+
+<script>
+class Student {
+    constructor(fullName, studentId) {
+        this.fullName = fullName;
+        // Chuyển MSV thành chuỗi (String) để tránh lỗi nếu Excel tự hiểu MSV là số
+        this.studentId = String(studentId).trim(); 
+        
+        this.email = this.generateEmail();
+        this.course = this.getCourse();
+        this.department = this.getDepartment();
+    }
+
+    // Hàm phụ: Xóa dấu tiếng Việt
+    removeAccents(str) {
+        return str.normalize('NFD')
+                  .replace(/[\u0300-\u036f]/g, '')
+                  .replace(/đ/g, 'd').replace(/Đ/g, 'D');
+    }
+
+    generateEmail() {
+        // Xóa dấu trước khi xử lý
+        let cleanName = this.removeAccents(this.fullName.trim().toLowerCase());
+        let parts = cleanName.split(" ");
+        
+        let firstName = parts.pop();
+        let initials = parts.map(p => p[0]).join("");
+
+        return `${firstName}${initials}.${this.studentId.toLowerCase()}@hvnh.edu.vn`;
+    }
+
+    getCourse() {
+        return "K" + this.studentId.substring(0, 2);
+    }
+
+    getDepartment() {
+        // Cắt 3 ký tự mã khoa từ vị trí số 3
+        let code = this.studentId.substring(3, 6);
+
+        switch(code) {
+            case "404": return "CNTT & KTS";
+            case "408": return "KHDL";
+            case "401": return "NH - TC";
+            case "403": return "QTKD";
+            case "405": return "KDQT";
+            case "407": return "KT";
+            case "406": return "Luật";
+            case "75A": return "NN";
+            case "402": return "KT-KT";
+            default: return "Chưa xác định";
+        }
+    }
+}
+
+document.getElementById('fileInput').addEventListener('change', handleFile);
+
+function handleFile(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+
+    reader.onload = function(e) {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const jsonData = XLSX.utils.sheet_to_json(sheet);
+
+        displayStudents(jsonData);
+    };
+
+    reader.readAsArrayBuffer(file);
+}
+
+function displayStudents(data) {
+    let table = document.getElementById("studentTable");
+    table.innerHTML = "";
+
+    data.forEach(row => {
+        // Đảm bảo tên cột trong ngoặc vuông khớp chính xác với tiêu đề trong file Excel
+        let student = new Student(row["Họ tên"], row["Mã SV"]);
+
+        let tr = `
+            <tr>
+                <td>${student.fullName}</td>
+                <td>${student.studentId}</td>
+                <td><a href="mailto:${student.email}">${student.email}</a></td>
+                <td>${student.course}</td>
+                <td>${student.department}</td>
+            </tr>
+        `;
+
+        table.innerHTML += tr;
+    });
+}
+</script>
+
+</body>
+</html>
